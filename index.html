@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prop-Firm Growth Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1a; --panel:#0f1524; --panel2:#131b2e; --row:#10182a;
+    --line:#1e2942; --line2:#27344f;
+    --text:#e6ecf7; --muted:#7d8aa6; --dim:#566681;
+    --input:#4ea1ff;       /* blue = your inputs */
+    --input-bg:rgba(78,161,255,.08);
+    --verify:#f5b94a;       /* amber = verify */
+    --verify-bg:rgba(245,185,74,.10);
+    --calc:#cdd6ea;         /* computed */
+    --accent:#ff5468; --pos:#3ddc97; --neg:#ff5468;
+    --head:#9fb2d8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(78,161,255,.07), transparent 60%),
+      radial-gradient(900px 500px at -5% 110%, rgba(245,185,74,.05), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:'Sora',sans-serif; line-height:1.45;
+    padding:0 0 80px; min-height:100vh;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:0 22px}
+
+  header.top{
+    padding:34px 22px 22px; max-width:1280px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+  }
+  .title h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .title .sub{color:var(--muted);font-size:13px;margin-top:6px;max-width:760px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+  button.tool{
+    font-family:'Sora';font-size:12.5px;font-weight:500;color:var(--text);
+    background:var(--panel2);border:1px solid var(--line2);border-radius:8px;
+    padding:9px 14px;cursor:pointer;transition:.15s;
+  }
+  button.tool:hover{border-color:var(--input);color:#fff;background:#162038}
+  button.tool.danger:hover{border-color:var(--accent);color:#fff}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;padding:16px 22px 0;max-width:1280px;margin:0 auto;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .sw{width:13px;height:13px;border-radius:3px;display:inline-block}
+  .sw.b{background:var(--input-bg);border:1px solid var(--input)}
+  .sw.y{background:var(--verify-bg);border:1px solid var(--verify)}
+  .sw.k{background:var(--row);border:1px solid var(--line2)}
+
+  section{margin-top:34px}
+
+  nav.tabs{
+    max-width:1280px;margin:18px auto 0;padding:0 22px;
+    display:flex;gap:6px;border-bottom:1px solid var(--line);
+  }
+  .tab-btn{
+    font-family:'Sora';font-size:13.5px;font-weight:600;letter-spacing:.01em;
+    color:var(--muted);background:transparent;border:none;border-bottom:2px solid transparent;
+    padding:12px 20px;cursor:pointer;transition:.15s;margin-bottom:-1px;
+  }
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:#fff;border-bottom-color:var(--input)}
+  .tab-pane{display:none}
+  .tab-pane.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .tab-pane > section:first-child{margin-top:26px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .sec-head h2{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--head)}
+  .sec-head .note{font-size:12px;color:var(--muted)}
+
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .panel.scroll{overflow-x:auto}
+  /* min-widths so wrapped columns stay readable */
+  #firmTable{min-width:1180px}
+  #refTable{min-width:980px}
+  #refTable td .cell.wrap{min-width:80px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{
+    background:#0c1322;color:var(--head);font-weight:600;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;text-align:left;padding:11px 10px;border-bottom:1px solid var(--line2);
+    white-space:pre-line;vertical-align:bottom;
+  }
+  td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid rgba(30,41,66,.5);vertical-align:middle}
+  td:last-child{border-right:none}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(78,161,255,.03)}
+
+  .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  td.calc{padding:9px 10px;color:var(--calc);text-align:right}
+  td.calc.money{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  td.lbl{padding:9px 10px;color:var(--text)}
+  td.lbl.muted{color:var(--muted);font-size:12px}
+
+  /* editable cells */
+  input.cell,textarea.cell,div.cell{
+    width:100%;background:transparent;border:none;outline:none;color:var(--text);
+    font-family:'Sora';font-size:13px;padding:9px 10px;resize:none;
+  }
+  input.cell:focus,textarea.cell:focus,div.cell:focus{background:rgba(78,161,255,.06)}
+  input.cell.in,textarea.cell.in,div.cell.in{color:var(--input);background:var(--input-bg);font-weight:500}
+  input.cell.in:focus,textarea.cell.in:focus,div.cell.in:focus{background:rgba(78,161,255,.16)}
+  input.cell.vf,textarea.cell.vf,div.cell.vf{color:var(--verify);background:var(--verify-bg)}
+  input.cell.vf:focus,div.cell.vf:focus{background:rgba(245,185,74,.2)}
+  input.cell.num,td .num input{font-family:'JetBrains Mono',monospace;text-align:right;font-variant-numeric:tabular-nums}
+  textarea.cell{font-size:12px;color:var(--muted);min-height:38px}
+  /* wrapping editable text cells — no more mid-word clipping */
+  div.cell.wrap{white-space:normal;overflow-wrap:anywhere;line-height:1.45;min-height:20px;cursor:text}
+  div.cell.wrap:empty:before{content:attr(data-ph);color:var(--dim)}
+
+  .row-x{width:30px;text-align:center;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:14px;padding:9px 4px}
+  .row-x:hover{color:var(--accent)}
+  .addrow{padding:11px 14px;background:#0c1322}
+  .addrow button{
+    font-family:'Sora';font-size:12.5px;color:var(--input);background:var(--input-bg);
+    border:1px dashed var(--input);border-radius:7px;padding:7px 14px;cursor:pointer
+  }
+  .addrow button:hover{background:rgba(78,161,255,.16)}
+
+  tr.summary td{background:#0c1322}
+  tr.summary td.calc{color:#fff;font-weight:500}
+  .plan-pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'JetBrains Mono'}
+  .plan-pill.pro{background:rgba(78,161,255,.14);color:var(--input);border:1px solid rgba(78,161,255,.4)}
+  .plan-pill.flex{background:rgba(245,185,74,.14);color:var(--verify);border:1px solid rgba(245,185,74,.4)}
+
+  /* income inputs grid */
+  .inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line)}
+  .ifield{background:var(--panel2);padding:14px 16px}
+  .ifield label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .ifield input{
+    width:100%;background:var(--input-bg);border:1px solid rgba(78,161,255,.3);border-radius:7px;
+    color:var(--input);font-family:'JetBrains Mono';font-size:18px;font-weight:600;padding:8px 11px;outline:none
+  }
+  .ifield input:focus{border-color:var(--input);background:rgba(78,161,255,.16)}
+  .ifield .hint{font-size:11px;color:var(--dim);margin-top:7px;line-height:1.4}
+
+  .checkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:14px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:16px}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .stat .v{font-family:'JetBrains Mono';font-size:24px;font-weight:700;margin-top:6px}
+  .stat .v.warn{color:var(--verify)}
+  .stat .ctx{font-size:11.5px;color:var(--dim);margin-top:8px;line-height:1.45}
+
+  .pos{color:var(--pos)} .neg{color:var(--neg)}
+
+  .rules{font-size:13px;color:var(--muted);padding:6px 2px}
+  .rules li{margin:10px 0 0 18px;line-height:1.55}
+  .src{font-size:11.5px;color:var(--dim);margin-top:16px;line-height:1.5;border-top:1px solid var(--line);padding-top:14px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#162038;border:1px solid var(--line2);color:var(--text);padding:11px 20px;border-radius:10px;
+    font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .disclaimer{font-size:11.5px;color:var(--dim);margin-top:10px;font-style:italic}
+  @media print{
+    body{background:#fff;color:#000}
+    .toolbar,.addrow,.row-x,nav.tabs{display:none}
+    .tab-pane{display:block!important}
+    .panel{break-inside:avoid}
+  }
+  @media(max-width:720px){
+    table{font-size:11.5px}
+    th{font-size:9px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="title">
+    <h1>Phased Prop-Firm Growth Plan</h1>
+    <div class="sub">TradeSyncer-managed, copier-based scaling. Run current firms, then add ~2 firms every ~2 months. Edit any blue field — all summaries, projections, and break-evens recalculate live.</div>
+  </div>
+  <div class="toolbar">
+    <button class="tool" onclick="saveState()">Save</button>
+    <button class="tool" onclick="window.print()">Print / PDF</button>
+    <button class="tool danger" onclick="resetState()">Reset to defaults</button>
+  </div>
+</header>
+
+<div class="legend">
+  <span><i class="sw b"></i> Blue = your inputs (edit)</span>
+  <span><i class="sw y"></i> Amber = verify at signup (rules/caps/prices rotate)</span>
+  <span><i class="sw k"></i> Neutral = formula (auto-calculated)</span>
+</div>
+
+<nav class="tabs" id="tabNav">
+  <button class="tab-btn active" data-tab="main" onclick="showTab('main')">Main</button>
+  <button class="tab-btn" data-tab="build" onclick="showTab('build')">Build Plan</button>
+  <button class="tab-btn" data-tab="ref" onclick="showTab('ref')">Firm Reference</button>
+</nav>
+
+<div class="wrap">
+
+  <div class="tab-pane" id="pane-build">
+  <!-- ============ BUILD PLAN ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Build Plan</h2>
+      <span class="note">Per-firm seats & costs. One-time spend = seats × $/seat. Monthly carry = seats × $/seat/mo.</span>
+    </div>
+    <div class="panel scroll">
+      <table id="firmTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Wave</th><th>Phase</th><th>Firm</th><th>Platform / Feed</th>
+            <th>TS Compat.</th><th>Copy Allowed</th><th>Drawdown Type</th><th>Funded Consistency</th>
+            <th>Acct Size</th>
+            <th style="text-align:right">Seats (planned)</th>
+            <th style="text-align:right">Max Seats (verify)</th>
+            <th style="text-align:right">One-time $/seat</th>
+            <th style="text-align:right">Monthly $/seat</th>
+            <th style="text-align:right">One-time spend</th>
+            <th style="text-align:right">Monthly carry</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="firmBody"></tbody>
+      </table>
+      <div class="addrow"><button onclick="addFirm()">+ Add firm</button></div>
+    </div>
+  </section>
+
+  <!-- ============ BUILD SUMMARY ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Cumulative Build Summary</h2>
+      <span class="note">Through each wave. TradeSyncer plan auto-flips to Flex when firms &gt; 4 or seats &gt; 20.</span>
+    </div>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Through Wave</th><th>Phase</th>
+            <th style="text-align:right">Firms (connections)</th>
+            <th style="text-align:right">Cumulative seats</th>
+            <th style="text-align:right">Cum one-time spend</th>
+            <th style="text-align:right">Cum monthly carry</th>
+            <th>TradeSyncer plan</th>
+            <th style="text-align:right">TS plan $/mo</th>
+            <th style="text-align:right">Total monthly fixed cost</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+    <div class="checkgrid" style="margin-top:16px">
+      <div class="stat">
+        <div class="k">TradeSyncer — Pro (4 conn / 20 accts) $/mo</div>
+        <div class="v"><input class="cell in num" style="font-size:24px;width:140px" id="tsPro" inputmode="decimal"></div>
+      </div>
+      <div class="stat">
+        <div class="k">TradeSyncer — Flex (unlimited / 120 accts) $/mo</div>
+        <div class="v"><input class="cell in num" style="font-size:24px;width:140px" id="tsFlex" inputmode="decimal"></div>
+      </div>
+    </div>
+    <div class="disclaimer">Edit the TradeSyncer plan costs to your actual billing (annual-equivalent $/mo).</div>
+  </section>
+
+  </div><!-- /pane-build -->
+
+  <div class="tab-pane active" id="pane-main">
+  <!-- ============ INCOME MODEL — INPUTS ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Income Model — Strategy Inputs</h2>
+      <span class="note">2× MGC/day strategy across the copied portfolio.</span>
+    </div>
+    <div class="panel">
+      <div class="inputs">
+        <div class="ifield">
+          <label>MGC contracts per account</label>
+          <input id="contracts" inputmode="decimal">
+        </div>
+        <div class="ifield">
+          <label>$ per tick, per MGC contract</label>
+          <input id="perTick" inputmode="decimal">
+          <div class="hint">MGC = 10 oz, tick = $0.10/oz = $1.00/contract</div>
+        </div>
+        <div class="ifield">
+          <label>Target NET $ / account / day</label>
+          <input id="target" inputmode="decimal">
+          <div class="hint">Your stated goal. See reality check below.</div>
+        </div>
+        <div class="ifield">
+          <label>Trading days per month</label>
+          <input id="tdays" inputmode="decimal">
+        </div>
+        <div class="ifield">
+          <label>Trader profit split (blended)</label>
+          <input id="split" inputmode="decimal">
+          <div class="hint">e.g. 0.9 = 90%. Apex pays 100% on first $25k/acct.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="checkgrid">
+      <div class="stat">
+        <div class="k">Ticks / day / account required</div>
+        <div class="v warn" id="ticksReq">—</div>
+      </div>
+      <div class="stat">
+        <div class="k">Gold price move / day required</div>
+        <div class="v warn" id="goldMove">—</div>
+      </div>
+      <div class="stat" style="grid-column:span 1">
+        <div class="k">Reality check</div>
+        <div class="ctx">Typical MGC day-trade target is ~10–40 ticks. $500 on 2 MGC = 250 ticks (~$25 gold move) — aggressive as a sustained <em>average</em>. If $500 was meant as a <em>portfolio</em> total, divide by seats; the sensitivity grid below shows both reads.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PORTFOLIO PROJECTION ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Portfolio Projection by Wave</h2>
+      <span class="note">Seats &amp; fixed cost link from Build Plan above.</span>
+    </div>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th style="text-align:right">Cumulative seats</th>
+            <th style="text-align:right">Gross $/day</th>
+            <th style="text-align:right">Gross $/month</th>
+            <th style="text-align:right">Trader share $/mo</th>
+            <th style="text-align:right">Monthly fixed cost</th>
+            <th style="text-align:right">NET $/month</th>
+            <th style="text-align:right">NET $/year</th>
+          </tr>
+        </thead>
+        <tbody id="projBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ SENSITIVITY ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Sensitivity</h2>
+      <span class="note">Monthly NET vs realistic per-seat output, at final cumulative seats. Edit the $/seat/day column.</span>
+    </div>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:right">$/seat/day</th>
+            <th style="text-align:right">Ticks (2 MGC)</th>
+            <th style="text-align:right">Gross $/mo</th>
+            <th style="text-align:right">Trader share $/mo</th>
+            <th style="text-align:right">NET $/mo</th>
+            <th style="text-align:right">NET $/yr</th>
+          </tr>
+        </thead>
+        <tbody id="sensBody"></tbody>
+      </table>
+    </div>
+    <div class="checkgrid">
+      <div class="stat">
+        <div class="k">Final cumulative seats</div>
+        <div class="v" id="finalSeats">—</div>
+      </div>
+      <div class="stat">
+        <div class="k">Monthly fixed cost (final)</div>
+        <div class="v" id="finalFixed">—</div>
+      </div>
+      <div class="stat">
+        <div class="k">Seats to cover fixed cost (at target $/seat/day)</div>
+        <div class="v" id="be1">—</div>
+      </div>
+      <div class="stat">
+        <div class="k">Seats to break even (at $50/seat/day)</div>
+        <div class="v" id="be2">—</div>
+      </div>
+    </div>
+  </section>
+
+  </div><!-- /pane-main -->
+
+  <div class="tab-pane" id="pane-ref">
+  <!-- ============ FIRM REFERENCE ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Firm Reference</h2>
+      <span class="note">Vetting notes &amp; sources. Verify at signup — rules/caps/prices rotate.</span>
+    </div>
+    <div class="panel scroll">
+      <table id="refTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Firm</th><th>Status in plan</th><th>Drawdown</th><th>Funded consistency</th>
+            <th>Max seats (verify)</th><th>Copy method</th><th>Platform feed</th><th>TradeSyncer</th><th>Key risk / note</th>
+          </tr>
+        </thead>
+        <tbody id="refBody"></tbody>
+      </table>
+      <div class="addrow"><button onclick="addRef()">+ Add reference row</button></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;padding:18px 20px">
+      <div style="font-size:11px;color:var(--head);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:6px">Cross-firm rules to keep live</div>
+      <ul class="rules" id="rulesList"></ul>
+      <div class="src" id="sourcesNote"></div>
+    </div>
+    <div class="disclaimer">This is a projection, not a forecast — copied fills slip and per-seat output varies. Not financial advice.</div>
+  </section>
+  </div><!-- /pane-ref -->
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY = 'propFirmGrowthPlan_v1';
+
+const DEFAULTS = {
+  firms: [
+    {wave:0,phase:'Now (live)',firm:'Lucid Trading',platform:'Tradovate/Rithmic',ts:'Y',copy:'Y (LucidFlex)',dd:'EOD',fc:'None on LucidFlex',size:'50K',seats:4,maxSeats:5,oneTime:504,monthly:0,notes:'Have. EOD DD, 90/10, ~15-min payouts. Flat by 4:45 ET, no overnight. No cross-acct hedging.',v:false},
+    {wave:0,phase:'Now (live)',firm:'Take Profit Trader',platform:'Tradovate',ts:'Y',copy:'Y (up to 5 PRO/PRO+)',dd:'EOD',fc:'None on PRO/Legacy',size:'50K',seats:4,maxSeats:5,oneTime:0,monthly:150,notes:'Have (PRO funded). Withdraw day 1, $1k payout guarantee. 80/20 (90/10 PRO+).',v:false},
+    {wave:0,phase:'Now (live)',firm:'Bluesky',platform:'VERIFY',ts:'VERIFY',copy:'VERIFY',dd:'VERIFY',fc:'VERIFY',size:'50K',seats:3,maxSeats:5,oneTime:0,monthly:0,notes:'VERIFY copy-trading + multi-acct rules + TS feed BEFORE relying on it as a copier seat.',v:true},
+    {wave:1,phase:'Month +2',firm:'Apex Trader Funding',platform:'Tradovate/Rithmic',ts:'Y',copy:'Y (native + TS)',dd:'EOD (choose)',fc:'None on funded',size:'50K',seats:20,maxSeats:20,oneTime:0,monthly:85,notes:'ANCHOR. 20 seats/household (counts LLC+spouse+all platforms). 100% first $25k then 90/10. Pick EOD variant.',v:false},
+    {wave:1,phase:'Month +2',firm:'MyFundedFutures (MFFU)',platform:'Tradovate/Rithmic',ts:'Y',copy:'Y',dd:'EOD options',fc:'Core 40% / Rapid-Pro vary',size:'50K',seats:4,maxSeats:5,oneTime:0,monthly:77,notes:'Most-used firm on TS alongside Apex. Lowest monthly sub. Pick EOD tier; Core has 40% consistency.',v:false},
+    {wave:2,phase:'Month +4',firm:'Tradeify',platform:'Tradovate',ts:'Y',copy:'Y (native + TS)',dd:'EOD trailing',fc:'None on Select Flex',size:'50K',seats:4,maxSeats:5,oneTime:150,monthly:0,notes:'One-time pricing. Select Flex = no funded consistency. Native Tradovate Group Trading.',v:false},
+    {wave:2,phase:'Month +4',firm:'Alpha Futures',platform:'Rithmic',ts:'Y',copy:'Y',dd:'EOD-friendly',fc:'~30-40% (verify)',size:'50K',seats:4,maxSeats:5,oneTime:0,monthly:99,notes:'Rithmic feed diversifies away from Tradovate-heavy stack. Solid reputation.',v:false},
+    {wave:3,phase:'Month +6',firm:'Bulenox',platform:'Tradovate/Rithmic',ts:'Y',copy:'Y',dd:'Trailing',fc:'Verify',size:'50K',seats:3,maxSeats:5,oneTime:0,monthly:99,notes:'Algo-friendly, 90% splits, BUT strict ~2% daily loss limit — size followers conservatively.',v:false},
+    {wave:3,phase:'Month +6',firm:'Top One Futures',platform:'Tradovate/Rithmic',ts:'Y',copy:'Y',dd:'Verify',fc:'Verify',size:'50K',seats:3,maxSeats:5,oneTime:0,monthly:99,notes:'TS-supported fill-in seat once higher-quality firms are saturated.',v:false},
+    {wave:4,phase:'Month +8 (opt)',firm:'TradeDay',platform:'Single-platform',ts:'Y',copy:'Y',dd:'EOD-friendly',fc:'~30%',size:'50K',seats:3,maxSeats:5,oneTime:0,monthly:99,notes:"DEFER. Single-platform rule (can't split accts across platforms) = friction in multi-platform copier.",v:false},
+    {wave:4,phase:'Month +8 (opt)',firm:'FundedNext Futures',platform:'Tradovate/Rithmic',ts:'Y',copy:'Y',dd:'Verify',fc:'Verify',size:'50K',seats:3,maxSeats:5,oneTime:0,monthly:99,notes:'OPTIONAL. Copy-friendly but smaller sizes. Tail capacity only.',v:false}
+  ],
+  waves: [
+    {w:0,phase:'Now (live)'},{w:1,phase:'Month +2'},{w:2,phase:'Month +4'},{w:3,phase:'Month +6'},{w:4,phase:'Month +8'}
+  ],
+  tsPro:99, tsFlex:149,
+  income:{contracts:2,perTick:1,target:500,tdays:21,split:0.9},
+  sens:[25,50,100,250,500],
+  ref:[
+    {firm:'Lucid Trading',status:'HAVE',dd:'EOD (all programs)',fc:'None on LucidFlex',max:'3–5 (Maxx best)',copy:'Internal via TS',feed:'Tradovate/Rithmic',ts:'Supported',risk:'No cross-account hedging; flat by 4:45 ET, no overnight.'},
+    {firm:'Take Profit Trader',status:'HAVE',dd:'EOD (PRO)',fc:'None on PRO/Legacy',max:'5 (PRO/PRO+)',copy:'Native up to 5 + TS',feed:'Tradovate',ts:'Supported',risk:'Withdraw from day 1; $1k 24h payout guarantee.'},
+    {firm:'Bluesky',status:'HAVE — VERIFY',dd:'VERIFY',fc:'VERIFY',max:'VERIFY',copy:'VERIFY',feed:'VERIFY',ts:'VERIFY',risk:'Could not confirm copy/cap rules — verify before treating as a copier seat.'},
+    {firm:'Apex Trader Funding',status:'ADD — Wave 1 (anchor)',dd:'EOD or intraday (pick EOD)',fc:'None on funded',max:'20 / household',copy:'Native (5) + TS',feed:'Tradovate/Rithmic',ts:'Native, most-used',risk:'Household cap counts LLC + spouse + ALL platforms combined.'},
+    {firm:'MyFundedFutures',status:'ADD — Wave 1',dd:'EOD options',fc:'Core 40%; Rapid/Pro vary',max:'3–5 (verify)',copy:'Internal via TS',feed:'Tradovate/Rithmic',ts:'Most-used w/ Apex',risk:'Lowest monthly sub; pick an EOD tier.'},
+    {firm:'Tradeify',status:'ADD — Wave 2',dd:'EOD trailing',fc:'None on Select Flex',max:'Multiple (verify)',copy:'Native Group + TS',feed:'Tradovate',ts:'Supported',risk:'One-time pricing; Select Flex is the copier-friendly tier.'},
+    {firm:'Alpha Futures',status:'ADD — Wave 2',dd:'EOD-friendly',fc:'~30–40% (verify)',max:'3–5 (verify)',copy:'Internal via TS',feed:'Rithmic',ts:'Supported',risk:'Diversifies feed away from Tradovate concentration.'},
+    {firm:'Bulenox',status:'ADD — Wave 3',dd:'Trailing',fc:'Verify',max:'3–5 (verify)',copy:'Internal via TS',feed:'Tradovate/Rithmic',ts:'Supported',risk:'Strict ~2% daily loss limit — size followers small.'},
+    {firm:'Top One Futures',status:'ADD — Wave 3',dd:'Verify',fc:'Verify',max:'3–5 (verify)',copy:'Internal via TS',feed:'Tradovate/Rithmic',ts:'Supported',risk:'Tail capacity once better firms are full.'},
+    {firm:'TradeDay',status:'DEFER — Wave 4',dd:'EOD-friendly',fc:'~30%',max:'3–5 (verify)',copy:'Internal via TS',feed:'Single-platform',ts:'Supported',risk:'Single-platform rule = friction in a multi-platform copier.'},
+    {firm:'FundedNext Futures',status:'OPTIONAL — Wave 4',dd:'Verify',fc:'Verify',max:'3–5 (verify)',copy:'Internal via TS',feed:'Tradovate/Rithmic',ts:'Supported',risk:'Smaller sizes; tail capacity only.'},
+    {firm:'Topstep',status:'SKIP',dd:'n/a',fc:'n/a',max:'~5 copy cap',copy:'TopstepX native only',feed:'TopstepX only',ts:'Poor fit',risk:'TopstepX-only since 2025; no Tradovate/Rithmic; outage history.'},
+    {firm:'Earn2Trade',status:'SKIP',dd:'n/a',fc:'~30%',max:'1 recommended',copy:'n/a',feed:'varies',ts:'limited',risk:'Own guidance leans single-account — opposite of a scaling play.'}
+  ],
+  rules:[
+    "Internal copying (your own accounts via TradeSyncer) is standard & allowed; EXTERNAL/signal copying is banned everywhere — not what you're doing.",
+    "Most firms ban CROSS-ACCOUNT HEDGING. A pure mirror copier is fine; keep your correlation guard (NQ/MNQ/MES = one underlying) live so two leaders never oppose.",
+    "Fill quality degrades as account count rises — many simultaneous market orders walk the book. Worse on NQ than MGC; test in sim at each new seat count.",
+    "Cap math: Apex ~20, most others 3–5. A 6-firm stack realistically = ~45–60 funded seats, not 100. The back half of the curve adds carry + reconciliation for shrinking marginal payout.",
+    "Go TradeSyncer Flex the moment Apex lands (Apex alone fills Pro's 4-conn/20-acct ceiling)."
+  ],
+  sources:"Sources (verify current): proptradingvibes.com (Apex copy rules; Lucid; Topstep), tradeify.co & help.tradeify.co (copy/EOD/consistency), damnpropfirms.com & thepropfirmguide.com (TradeSyncer firm support), phidiaspropfirm.com (Lucid/Tradeify/MFFU rules). Rules & prices confirmed ~Apr–May 2026."
+};
+
+let S = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return structuredClone(DEFAULTS);
+}
+function saveState(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); toast('Saved'); }
+  catch(e){ toast('Save unavailable in this context'); }
+}
+function resetState(){
+  if(!confirm('Reset all fields to the original plan? This clears your edits.')) return;
+  S = structuredClone(DEFAULTS);
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  renderAll(); toast('Reset to defaults');
+}
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+// ---- formatting ----
+const money = v => (v<0?'-':'') + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+const numf  = v => (Math.round(v*100)/100).toLocaleString('en-US');
+const round = v => Math.round(v);
+const roundup = v => Math.ceil(v);
+
+// ---- input helpers ----
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function autosave(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){} }
+
+// ============ BUILD PLAN ============
+function ceCell(val,cls,commit){
+  return `<div class="cell wrap ${cls}" contenteditable="true" spellcheck="false" onblur="${commit}">${esc(val)}</div>`;
+}
+function renderFirms(){
+  const tb=document.getElementById('firmBody'); tb.innerHTML='';
+  S.firms.forEach((f,i)=>{
+    const vc = f.v ? 'vf' : 'in';
+    const vfif = v => v==='VERIFY' ? 'vf' : 'in';
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-x" title="Delete row" onclick="delFirm(${i})">×</td>
+      <td><input class="cell in num" style="width:54px" value="${f.wave}" inputmode="decimal" onchange="updF(${i},'wave',this.value,1)"></td>
+      <td>${ceCell(f.phase,vc,`updFT(${i},'phase',this.textContent)`)}</td>
+      <td>${ceCell(f.firm,vc,`updFT(${i},'firm',this.textContent)`)}</td>
+      <td>${ceCell(f.platform,vfif(f.platform),`updFT(${i},'platform',this.textContent)`)}</td>
+      <td>${ceCell(f.ts,vfif(f.ts),`updFT(${i},'ts',this.textContent)`)}</td>
+      <td>${ceCell(f.copy,vfif(f.copy),`updFT(${i},'copy',this.textContent)`)}</td>
+      <td>${ceCell(f.dd,vfif(f.dd),`updFT(${i},'dd',this.textContent)`)}</td>
+      <td>${ceCell(f.fc,vfif(f.fc),`updFT(${i},'fc',this.textContent)`)}</td>
+      <td>${ceCell(f.size,'in',`updFT(${i},'size',this.textContent)`)}</td>
+      <td><input class="cell in num" style="width:60px" value="${f.seats}" inputmode="decimal" onchange="updF(${i},'seats',this.value,1)"></td>
+      <td><input class="cell in num" style="width:60px" value="${f.maxSeats}" inputmode="decimal" onchange="updF(${i},'maxSeats',this.value,1)"></td>
+      <td><input class="cell in num" style="width:74px" value="${f.oneTime}" inputmode="decimal" onchange="updF(${i},'oneTime',this.value,1)"></td>
+      <td><input class="cell in num" style="width:74px" value="${f.monthly}" inputmode="decimal" onchange="updF(${i},'monthly',this.value,1)"></td>
+      <td class="calc money">${money(num(f.seats)*num(f.oneTime))}</td>
+      <td class="calc money">${money(num(f.seats)*num(f.monthly))}</td>
+      <td style="min-width:260px">${ceCell(f.notes,'',`updFT(${i},'notes',this.textContent)`)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function updF(i,key,val,isNum){ S.firms[i][key] = isNum ? num(val) : val; autosave(); renderAll(); }
+function updFT(i,key,val){ S.firms[i][key] = val; autosave(); }
+function delFirm(i){ S.firms.splice(i,1); autosave(); renderAll(); }
+function addFirm(){
+  S.firms.push({wave:0,phase:'',firm:'New firm',platform:'',ts:'Y',copy:'Y',dd:'',fc:'',size:'50K',seats:0,maxSeats:5,oneTime:0,monthly:0,notes:'',v:false});
+  autosave(); renderAll();
+}
+
+// ============ SUMMARY (COUNTIFS / SUMIFS by wave threshold) ============
+function summaryAt(w){
+  const fs = S.firms.filter(f=>num(f.wave)<=w);
+  const firms = fs.length;
+  const seats = fs.reduce((a,f)=>a+num(f.seats),0);
+  const oneTime = fs.reduce((a,f)=>a+num(f.seats)*num(f.oneTime),0);
+  const carry = fs.reduce((a,f)=>a+num(f.seats)*num(f.monthly),0);
+  const plan = (firms>4 || seats>20) ? 'Flex' : 'Pro';
+  const planCost = plan==='Flex' ? num(S.tsFlex) : num(S.tsPro);
+  const fixed = carry + planCost;
+  return {firms,seats,oneTime,carry,plan,planCost,fixed};
+}
+function renderSummary(){
+  const tb=document.getElementById('summaryBody'); tb.innerHTML='';
+  S.waves.forEach(wv=>{
+    const r=summaryAt(wv.w);
+    const pill = `<span class="plan-pill ${r.plan.toLowerCase()}">${r.plan}</span>`;
+    const tr=document.createElement('tr'); tr.className='summary';
+    tr.innerHTML = `
+      <td class="calc num" style="text-align:left">${wv.w}</td>
+      <td class="lbl">${esc(wv.phase)}</td>
+      <td class="calc num">${r.firms}</td>
+      <td class="calc num">${r.seats}</td>
+      <td class="calc money">${money(r.oneTime)}</td>
+      <td class="calc money">${money(r.carry)}</td>
+      <td class="lbl">${pill}</td>
+      <td class="calc money">${money(r.planCost)}</td>
+      <td class="calc money">${money(r.fixed)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ============ INCOME MODEL ============
+function bindIncome(){
+  const map={contracts:'contracts',perTick:'perTick',target:'target',tdays:'tdays',split:'split'};
+  Object.keys(map).forEach(id=>{
+    const el=document.getElementById(id);
+    el.value=S.income[map[id]];
+    el.oninput=()=>{ S.income[map[id]]=num(el.value); autosave(); renderCalc(); };
+  });
+  const tp=document.getElementById('tsPro'), tf=document.getElementById('tsFlex');
+  tp.value=S.tsPro; tf.value=S.tsFlex;
+  tp.oninput=()=>{ S.tsPro=num(tp.value); autosave(); renderSummary(); renderProj(); renderSens(); };
+  tf.oninput=()=>{ S.tsFlex=num(tf.value); autosave(); renderSummary(); renderProj(); renderSens(); };
+}
+function renderCalc(){
+  const {contracts,perTick,target,tdays,split}=S.income;
+  const denom = num(contracts)*num(perTick);
+  const ticks = denom ? round(num(target)/denom) : 0;
+  document.getElementById('ticksReq').textContent = ticks;
+  document.getElementById('goldMove').textContent = '$'+numf(ticks*0.1);
+  renderProj(); renderSens();
+}
+function renderProj(){
+  const {target,tdays,split}=S.income;
+  const tb=document.getElementById('projBody'); tb.innerHTML='';
+  S.waves.forEach(wv=>{
+    const sm=summaryAt(wv.w);
+    const grossDay=sm.seats*num(target);
+    const grossMo=grossDay*num(tdays);
+    const share=grossMo*num(split);
+    const net=share-sm.fixed;
+    const yr=net*12;
+    const cls=net>=0?'pos':'neg';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="lbl">${esc(wv.phase)}</td>
+      <td class="calc num">${sm.seats}</td>
+      <td class="calc money">${money(grossDay)}</td>
+      <td class="calc money">${money(grossMo)}</td>
+      <td class="calc money">${money(share)}</td>
+      <td class="calc money">${money(sm.fixed)}</td>
+      <td class="calc money ${cls}">${money(net)}</td>
+      <td class="calc money ${cls}">${money(yr)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function renderSens(){
+  const {contracts,perTick,tdays,split,target}=S.income;
+  const last=S.waves[S.waves.length-1];
+  const sm=summaryAt(last?last.w:0);
+  const seats=sm.seats, fixed=sm.fixed;
+  const denom=num(contracts)*num(perTick);
+  const tb=document.getElementById('sensBody'); tb.innerHTML='';
+  S.sens.forEach((rate,i)=>{
+    const ticks=denom?num(rate)/denom:0;
+    const grossMo=seats*num(rate)*num(tdays);
+    const share=grossMo*num(split);
+    const net=share-fixed;
+    const yr=net*12;
+    const cls=net>=0?'pos':'neg';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input class="cell in num" style="width:74px" value="${rate}" inputmode="decimal" onchange="updSens(${i},this.value)"></td>
+      <td class="calc num">${numf(ticks)}</td>
+      <td class="calc money">${money(grossMo)}</td>
+      <td class="calc money">${money(share)}</td>
+      <td class="calc money ${cls}">${money(net)}</td>
+      <td class="calc money ${cls}">${money(yr)}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('finalSeats').textContent=seats;
+  document.getElementById('finalFixed').textContent=money(fixed);
+  const be1 = (num(target)*num(tdays)*num(split))>0 ? roundup(fixed/(num(target)*num(tdays)*num(split))) : '—';
+  const be2 = (num(tdays)*num(split))>0 ? roundup(fixed/(50*num(tdays)*num(split))) : '—';
+  document.getElementById('be1').textContent=be1;
+  document.getElementById('be2').textContent=be2;
+}
+function updSens(i,v){ S.sens[i]=num(v); autosave(); renderSens(); }
+
+// ============ FIRM REFERENCE ============
+function renderRef(){
+  const tb=document.getElementById('refBody'); tb.innerHTML='';
+  S.ref.forEach((r,i)=>{
+    const cols=[['firm',150],['status',130],['dd',120],['fc',130],['max',110],['copy',120],['feed',120],['ts',110],['risk',260]];
+    let cells=`<td class="row-x" title="Delete row" onclick="delRef(${i})">×</td>`;
+    cols.forEach(([c,mw])=>{
+      const v = r[c]||'';
+      const cls = (v==='VERIFY') ? 'vf' : '';
+      cells += `<td style="min-width:${mw}px">${ceCell(v,cls,`updRef(${i},'${c}',this.textContent)`)}</td>`;
+    });
+    const tr=document.createElement('tr'); tr.innerHTML=cells; tb.appendChild(tr);
+  });
+}
+function updRef(i,k,v){ S.ref[i][k]=v; autosave(); }
+function delRef(i){ S.ref.splice(i,1); autosave(); renderRef(); }
+function addRef(){ S.ref.push({firm:'New firm',status:'',dd:'',fc:'',max:'',copy:'',feed:'',ts:'',risk:''}); autosave(); renderRef(); }
+
+function renderRules(){
+  const ul=document.getElementById('rulesList'); ul.innerHTML='';
+  S.rules.forEach(r=>{ const li=document.createElement('li'); li.textContent=r; ul.appendChild(li); });
+  document.getElementById('sourcesNote').textContent=S.sources;
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showTab(name){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id==='pane-'+name));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  try{ localStorage.setItem(STORE_KEY+'_tab', name); }catch(e){}
+  window.scrollTo({top:0});
+}
+
+function renderAll(){
+  renderFirms(); renderSummary(); renderProj(); renderSens(); renderRef(); renderRules();
+  // re-sync income input fields (in case of reset)
+  document.getElementById('contracts').value=S.income.contracts;
+  document.getElementById('perTick').value=S.income.perTick;
+  document.getElementById('target').value=S.income.target;
+  document.getElementById('tdays').value=S.income.tdays;
+  document.getElementById('split').value=S.income.split;
+  document.getElementById('tsPro').value=S.tsPro;
+  document.getElementById('tsFlex').value=S.tsFlex;
+  renderCalc();
+}
+
+bindIncome();
+renderAll();
+try{ const t=localStorage.getItem(STORE_KEY+'_tab'); if(t) showTab(t); }catch(e){}
+</script>
+</body>
+</html>
