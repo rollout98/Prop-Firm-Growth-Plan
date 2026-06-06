@@ -11,14 +11,14 @@
   :root{
     --bg:#0a0e1a; --panel:#0f1524; --panel2:#131b2e; --row:#10182a;
     --line:#1e2942; --line2:#27344f;
-    --text:#e6ecf7; --muted:#7d8aa6; --dim:#566681;
-    --input:#4ea1ff;       /* blue = your inputs */
-    --input-bg:rgba(78,161,255,.08);
-    --verify:#f5b94a;       /* amber = verify */
-    --verify-bg:rgba(245,185,74,.10);
-    --calc:#cdd6ea;         /* computed */
-    --accent:#ff5468; --pos:#3ddc97; --neg:#ff5468;
-    --head:#9fb2d8;
+    --text:#eef2fa; --muted:#9fb0cf; --dim:#8494b4;
+    --input:#6bb2ff;       /* blue = your inputs */
+    --input-bg:rgba(78,161,255,.13);
+    --verify:#ffc659;       /* amber = verify */
+    --verify-bg:rgba(245,185,74,.14);
+    --calc:#dbe3f2;         /* computed */
+    --accent:#ff5468; --pos:#46e3a0; --neg:#ff6b7c;
+    --head:#b6c5e6;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -79,7 +79,15 @@
   .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .panel.scroll{overflow-x:auto}
   /* min-widths so wrapped columns stay readable */
-  #firmTable{min-width:1180px}
+  #firmTable{min-width:1760px}
+  #firmTable td .cell.wrap{min-width:60px}
+  #firmTable th:nth-child(3),#firmTable td:nth-child(3){min-width:92px}   /* phase */
+  #firmTable th:nth-child(4),#firmTable td:nth-child(4){min-width:124px}  /* firm */
+  #firmTable th:nth-child(5),#firmTable td:nth-child(5){min-width:120px}  /* platform */
+  #firmTable th:nth-child(7),#firmTable td:nth-child(7){min-width:128px}  /* copy allowed */
+  #firmTable th:nth-child(8),#firmTable td:nth-child(8){min-width:104px}  /* drawdown */
+  #firmTable th:nth-child(9),#firmTable td:nth-child(9){min-width:124px}  /* funded consistency */
+  #firmTable th:nth-child(17),#firmTable td:nth-child(17){min-width:260px} /* notes */
   #refTable{min-width:980px}
   #refTable td .cell.wrap{min-width:80px}
 
@@ -113,7 +121,7 @@
   input.cell.num,td .num input{font-family:'JetBrains Mono',monospace;text-align:right;font-variant-numeric:tabular-nums}
   textarea.cell{font-size:12px;color:var(--muted);min-height:38px}
   /* wrapping editable text cells — no more mid-word clipping */
-  div.cell.wrap{white-space:normal;overflow-wrap:anywhere;line-height:1.45;min-height:20px;cursor:text}
+  div.cell.wrap{white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none;line-height:1.4;min-height:20px;cursor:text}
   div.cell.wrap:empty:before{content:attr(data-ph);color:var(--dim)}
 
   .row-x{width:30px;text-align:center;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:14px;padding:9px 4px}
