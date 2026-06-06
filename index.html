@@ -195,6 +195,7 @@
 
 <nav class="tabs" id="tabNav">
   <button class="tab-btn active" data-tab="main" onclick="showTab('main')">Main</button>
+  <button class="tab-btn" data-tab="ramp" onclick="showTab('ramp')">2026 Ramp</button>
   <button class="tab-btn" data-tab="build" onclick="showTab('build')">Build Plan</button>
   <button class="tab-btn" data-tab="ref" onclick="showTab('ref')">Firm Reference</button>
 </nav>
@@ -388,6 +389,48 @@
 
   </div><!-- /pane-main -->
 
+  <div class="tab-pane" id="pane-ramp">
+  <section>
+    <div class="sec-head">
+      <h2>2026 Monthly Ramp</h2>
+      <span class="note">From this month through December, at a fixed $/day per account. Edit the blue inputs.</span>
+    </div>
+    <div class="panel">
+      <div class="inputs">
+        <div class="ifield"><label>Starting accounts</label><input id="rStart" inputmode="decimal"></div>
+        <div class="ifield"><label>Accounts added / month</label><input id="rGrow" inputmode="decimal"><div class="hint">Linear growth each month.</div></div>
+        <div class="ifield"><label>$ / day per account</label><input id="rPerDay" inputmode="decimal"></div>
+        <div class="ifield"><label>Avg monthly cost / account</label><input id="rCost" inputmode="decimal"><div class="hint">Firm subscription blend; TradeSyncer plan added automatically.</div></div>
+        <div class="ifield"><label>Trading days / month</label><input id="rTdays" inputmode="decimal"></div>
+        <div class="ifield"><label>Profit split</label><input id="rSplit" inputmode="decimal"></div>
+      </div>
+    </div>
+    <div class="panel scroll" style="margin-top:16px">
+      <table id="rampTable" style="min-width:880px">
+        <thead><tr>
+          <th>Month</th>
+          <th style="text-align:right">Accounts</th>
+          <th style="text-align:right">Gross $/day</th>
+          <th style="text-align:right">Gross $/mo</th>
+          <th style="text-align:right">Trader share $/mo</th>
+          <th>TS plan</th>
+          <th style="text-align:right">Monthly fixed cost</th>
+          <th style="text-align:right">NET $/mo</th>
+          <th style="text-align:right">Cumulative NET</th>
+        </tr></thead>
+        <tbody id="rampBody"></tbody>
+      </table>
+    </div>
+    <div class="checkgrid">
+      <div class="stat"><div class="k">Total NET (this period)</div><div class="v pos" id="rTotal">—</div></div>
+      <div class="stat"><div class="k">Accounts by December</div><div class="v" id="rEndAcc">—</div></div>
+      <div class="stat"><div class="k">December run-rate (annualized NET)</div><div class="v" id="rRunRate">—</div></div>
+      <div class="stat"><div class="k">Reality check</div><div class="ctx">$500/day/account ≈ 250 ticks on 2 MGC (~$25 gold move) — aggressive as a sustained average. Treat as a ceiling; dial $/day down to stress-test.</div></div>
+    </div>
+    <div class="disclaimer">Trading days &amp; profit split are shared with the Main tab. Projection, not a forecast — copied fills slip and per-seat output varies.</div>
+  </section>
+  </div><!-- /pane-ramp -->
+
   <div class="tab-pane" id="pane-ref">
   <!-- ============ FIRM REFERENCE ============ -->
   <section>
@@ -444,6 +487,7 @@ const DEFAULTS = {
   ],
   tsPro:99, tsFlex:149,
   income:{contracts:2,perTick:1,target:500,tdays:21,split:0.9},
+  ramp:{start:4, growth:4, perDay:500, cost:90},
   sens:[25,50,100,250,500],
   ref:[
     {firm:'Lucid Trading',status:'HAVE',dd:'EOD (all programs)',fc:'None on LucidFlex',max:'3–5 (Maxx best)',copy:'Internal via TS',feed:'Tradovate/Rithmic',ts:'Supported',risk:'No cross-account hedging; flat by 4:45 ET, no overnight.'},
@@ -471,6 +515,7 @@ const DEFAULTS = {
 };
 
 let S = load();
+if(!S.ramp) S.ramp = structuredClone(DEFAULTS.ramp);
 
 function load(){
   try{
@@ -654,6 +699,61 @@ function renderSens(){
 }
 function updSens(i,v){ S.sens[i]=num(v); autosave(); renderSens(); }
 
+// ============ 2026 MONTHLY RAMP ============
+function monthsToYearEnd(){
+  const now=new Date(); const y=now.getFullYear(); const start=now.getMonth();
+  const arr=[]; for(let m=start;m<=11;m++) arr.push(new Date(y,m,1));
+  if(arr.length===0) arr.push(new Date(y,11,1));
+  return arr;
+}
+function rampNet(acc){
+  const r=S.ramp, tdays=num(S.income.tdays), split=num(S.income.split);
+  const grossMo=acc*num(r.perDay)*tdays;
+  const share=grossMo*split;
+  const planCost=acc>20?num(S.tsFlex):num(S.tsPro);
+  const fixed=acc*num(r.cost)+planCost;
+  return {grossDay:acc*num(r.perDay),grossMo,share,plan:acc>20?'Flex':'Pro',planCost,fixed,net:share-fixed};
+}
+function bindRamp(){
+  const m={rStart:'start',rGrow:'growth',rPerDay:'perDay',rCost:'cost'};
+  Object.keys(m).forEach(id=>{
+    const el=document.getElementById(id); el.value=S.ramp[m[id]];
+    el.oninput=()=>{ S.ramp[m[id]]=num(el.value); autosave(); renderRamp(); };
+  });
+  const td=document.getElementById('rTdays'), sp=document.getElementById('rSplit');
+  td.value=S.income.tdays; sp.value=S.income.split;
+  td.oninput=()=>{ S.income.tdays=num(td.value); autosave(); renderAll(); };
+  sp.oninput=()=>{ S.income.split=num(sp.value); autosave(); renderAll(); };
+}
+function renderRamp(){
+  const r=S.ramp;
+  const months=monthsToYearEnd();
+  const tb=document.getElementById('rampBody'); tb.innerHTML='';
+  let cum=0, lastAcc=0;
+  months.forEach((d,i)=>{
+    const acc=Math.max(0, Math.round(num(r.start)+num(r.growth)*i));
+    lastAcc=acc;
+    const c=rampNet(acc); cum+=c.net;
+    const cls=c.net>=0?'pos':'neg';
+    const lbl=d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    const pill=`<span class="plan-pill ${c.plan.toLowerCase()}">${c.plan}</span>`;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="lbl">${lbl}</td>
+      <td class="calc num">${acc}</td>
+      <td class="calc money">${money(c.grossDay)}</td>
+      <td class="calc money">${money(c.grossMo)}</td>
+      <td class="calc money">${money(c.share)}</td>
+      <td class="lbl">${pill}</td>
+      <td class="calc money">${money(c.fixed)}</td>
+      <td class="calc money ${cls}">${money(c.net)}</td>
+      <td class="calc money ${cls}">${money(cum)}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('rTotal').textContent=money(cum);
+  document.getElementById('rEndAcc').textContent=lastAcc;
+  document.getElementById('rRunRate').textContent=money(rampNet(lastAcc).net*12);
+}
+
 // ============ FIRM REFERENCE ============
 function renderRef(){
   const tb=document.getElementById('refBody'); tb.innerHTML='';
@@ -688,7 +788,7 @@ function showTab(name){
 }
 
 function renderAll(){
-  renderFirms(); renderSummary(); renderProj(); renderSens(); renderRef(); renderRules();
+  renderFirms(); renderSummary(); renderProj(); renderSens(); renderRamp(); renderRef(); renderRules();
   // re-sync income input fields (in case of reset)
   document.getElementById('contracts').value=S.income.contracts;
   document.getElementById('perTick').value=S.income.perTick;
@@ -697,10 +797,18 @@ function renderAll(){
   document.getElementById('split').value=S.income.split;
   document.getElementById('tsPro').value=S.tsPro;
   document.getElementById('tsFlex').value=S.tsFlex;
+  // re-sync ramp fields
+  document.getElementById('rStart').value=S.ramp.start;
+  document.getElementById('rGrow').value=S.ramp.growth;
+  document.getElementById('rPerDay').value=S.ramp.perDay;
+  document.getElementById('rCost').value=S.ramp.cost;
+  document.getElementById('rTdays').value=S.income.tdays;
+  document.getElementById('rSplit').value=S.income.split;
   renderCalc();
 }
 
 bindIncome();
+bindRamp();
 renderAll();
 try{ const t=localStorage.getItem(STORE_KEY+'_tab'); if(t) showTab(t); }catch(e){}
 </script>
